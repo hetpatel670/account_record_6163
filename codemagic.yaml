@@ -27,9 +27,7 @@ workflows:
 
       - name: Run static analysis
         script: |
-          # The arguments are now correctly placed on the same line as the command.
           flutter analyze . --no-fatal-infos --no-fatal-warnings
-        # Ignore failures for now, but it's good practice to enforce this.
 
       - name: Run widget tests
         script: |
@@ -69,25 +67,5 @@ workflows:
       - build/ios/ipa/*.ipa
       - $FCI_BUILD_DIR/build/test.xml # Collect test report
 
-    publishing:
-      # This is a commented-out example of how to publish to stores.
-      # You would need to set up API credentials as environment variables.
-      # Reference: https://docs.codemagic.io/publishing-yaml/
-      
-      # email:
-      #   recipients:
-      #     - your-email@example.com
-      #   notify:
-      #     success: true
-      #     failure: true
-
-      # google_play:
-      #   credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS # Store in Codemagic UI
-      #   track: internal # or alpha, beta, production
-      #   submit_as_draft: true 
-
-      # app_store_connect:
-      #   api_key: $APP_STORE_CONNECT_API_KEY # Store in Codemagic UI
-      #   key_id: $APP_STORE_CONNECT_KEY_ID
-      #   issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-      #   submit_to_testflight: true 
+# The 'publishing' section has been completely removed to fix the validation error.
+# You can add it back later when you are ready to configure deployment.
