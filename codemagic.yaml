@@ -1,20 +1,3 @@
-Of course! I apologize for that YAML syntax error. The error message from Codemagic is very clear:
-
-**`expected <block end>, but found '<scalar>'`**
-
-This is a classic YAML indentation problem. The `args` section for the static analysis step was incorrectly structured as a sibling to `script`, when the arguments should have been part of the `script` command itself.
-
-I have corrected this syntax error and also made the iOS build script slightly more robust by adding the `xcode-project use-profiles` command, which is a best practice for applying the correct provisioning profiles.
-
-Here is the full, corrected `codemagic.yaml` file.
-
----
-
-### Corrected `codemagic.yaml`
-
-Save this code in the root of your repository. It will resolve the configuration error.
-
-```yaml
 # codemagic.yaml
 # Reference: https://docs.codemagic.io/yaml-basic-configuration/
 
@@ -108,18 +91,3 @@ workflows:
       #   key_id: $APP_STORE_CONNECT_KEY_ID
       #   issuer_id: $APP_STORE_CONNECT_ISSUER_ID
       #   submit_to_testflight: true 
-```
-
-### Summary of Changes
-
-1.  **Fixed Static Analysis Script:**
-    *   **Removed:** The separate `args:` block which was causing the YAML parsing error.
-    *   **Modified:** The `script` for `Run static analysis` now includes the arguments directly on the command line:
-        ```yaml
-        script: |
-          flutter analyze . --no-fatal-infos --no-fatal-warnings
-        ```
-2.  **Improved iOS Script:**
-    *   Added `xcode-project use-profiles` right after adding the provisioning profile. This command ensures that Xcode uses the profile you just installed, which prevents many common code-signing issues.
-
-Now, you can commit this updated `codemagic.yaml` to your repository, and Codemagic will be able to parse it correctly and run your build.
