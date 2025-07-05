@@ -1,0 +1,103 @@
+# codemagic.yaml
+# Reference: https://docs.codemagic.io/yaml-basic-configuration/
+
+workflows:
+  flutter-ci-cd:
+    name: Flutter CI/CD
+    # Set the Flutter version to use. 'stable', 'beta', or a specific version like '3.19.5'
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+    # Trigger the build on pushes or pull requests to the 'master' branch
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: 'master'
+          include: true
+          source: true
+
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+
+      - name: Run static analysis
+        script: |
+          flutter analyze .
+        # Ignore failures for now, but it's good practice to enforce this
+        args:
+          --no-fatal-infos # Treat info-level issues as warnings
+          --no-fatal-warnings # Treat warning-level issues as warnings
+
+      - name: Run widget tests
+        script: |
+          flutter test
+        test_report: build/test.xml # Optional: To see test results in Codemagic UI
+
+      - name: Generate app icons
+        # This script is included because 'flutter_launcher_icons' is in your pubspec.yaml
+        script: |
+          flutter pub run flutter_launcher_icons
+
+      - name: Build Android Release (App Bundle)
+        script: |
+          flutter build appbundle --release
+      
+      - name: Build iOS Release (IPA)
+        script: |
+          # The following lines are for setting up iOS code signing.
+          # You must configure these environment variables in the Codemagic UI.
+          # 1. Go to your app settings > Environment variables.
+          # 2. Add 'IOS_CERTIFICATE', 'IOS_CERTIFICATE_PASSWORD', and 'IOS_PROVISIONING_PROFILE'
+          #    as secure variables.
+          # Reference: https://docs.codemagic.io/yaml-code-signing/ios-code-signing/
+          
+          keychain initialize
+          keychain add-certificates --certificate "$IOS_CERTIFICATE" --certificate-password "$IOS_CERTIFICATE_PASSWORD"
+          keychain add-provisioning-profile --profile "$IOS_PROVISIONING_PROFILE"
+          
+          # Clean up the keychain after the build
+          # Using "set -x" prints all commands for easier debugging
+          set -x
+          # Always clean the project to avoid old build artifacts
+          find . -name "Podfile" -execdir pod install \;
+          flutter build ipa --release --export-options-plist=$FCI_BUILD_DIR/ios/ExportOptions.plist
+          
+          keychain cleanup
+
+    artifacts:
+      # Collect the build artifacts to be downloaded from the Codemagic UI
+      - build/app/outputs/bundle/release/*.aab
+      - build/ios/ipa/*.ipa
+      - $FCI_BUILD_DIR/build/test.xml # Collect test report
+
+    publishing:
+      # This is a commented-out example of how to publish to stores.
+      # You would need to set up API credentials as environment variables.
+      # Reference: https://docs.codemagic.io/publishing-yaml/
+      
+      # email:
+      #   recipients:
+      #     - your-email@example.com
+      #   notify:
+      #     success: true
+      #     failure: true
+
+      # google_play:
+      #   credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS # Store in Codemagic UI
+      #   track: internal # or alpha, beta, production
+      #   # To submit a new release to the store:
+      #   # submit_as_draft: true 
+
+      # app_store_connect:
+      #   api_key: $APP_STORE_CONNECT_API_KEY # Store in Codemagic UI
+      #   key_id: $APP_STORE_CONNECT_KEY_ID
+      #   issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+      #   # To submit to TestFlight:
+      #   # submit_to_testflight: true 
+      #   # To submit to App Store:
+      #   # submit_to_app_store: true
