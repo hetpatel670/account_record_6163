@@ -20,7 +20,6 @@ class _MainDashboardState extends State<MainDashboard>
     with TickerProviderStateMixin {
   late TabController _tabController;
   bool _isDarkMode = false;
-  bool _isLoading = false;
 
   // Mock financial data
   final List<Map<String, dynamic>> _transactions = [
@@ -126,19 +125,11 @@ class _MainDashboardState extends State<MainDashboard>
   }
 
   Future<void> _refreshData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     // Simulate API call
     await Future.delayed(Duration(seconds: 1));
 
     // Haptic feedback
     HapticFeedback.mediumImpact();
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   void _deleteTransaction(int transactionId) {

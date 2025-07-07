@@ -252,9 +252,6 @@ class _CategoriesManagementState extends State<CategoriesManagement> {
 
   @override
   Widget build(BuildContext context) {
-    final customCategories =
-        _categories.where((cat) => !(cat["isDefault"] as bool)).toList();
-
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
